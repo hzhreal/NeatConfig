@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "hashtable.h"
 
@@ -19,6 +20,12 @@ extern "C" {
 #define CONFIG_DELIMITER '='
 #define CONFIG_COMMENT '#'
 
+typedef struct {
+    uint8_t red;
+    uint8_t blue;
+    uint8_t green;
+} RGB_t;
+
 ConfigTable *config_parse_file(const char *filepath);
 void config_cleanup(ConfigTable *table);
 
@@ -29,6 +36,7 @@ int config_get_long(ConfigTable *table, const char *key, int base, long *val);
 int config_get_long_long(ConfigTable *table, const char *key, int base, long long *val);
 int config_get_float(ConfigTable *table, const char *key, float *val);
 int config_get_double(ConfigTable *table, const char *key, double *val);
+int config_get_rgb(ConfigTable *table, const char *key, RGB_t *color);
 
 #ifdef __cplusplus
 }

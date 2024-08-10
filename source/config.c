@@ -247,3 +247,49 @@ int config_get_double(ConfigTable *table, const char *key, double *val) {
 
     return 0;
 }
+
+int config_get_rgb(ConfigTable *table, const char *key, RGB_t *color) {
+    char *result, *end = NULL;
+    long l;
+    
+    result = config_table_lookup(table, key);
+    if (!result) {
+        return -1;
+    }
+
+    errno = 0;
+
+    /* RED */
+    l = strtol(result, &end, 10);
+    if (errno != 0 || l > UINT8_MAX || l < 0) {
+        return -2;
+    }
+    color->red = (uint8_t)l;
+    if (*end != ',') {
+        return -3;
+    }
+    end++;
+
+    /* BLUE */
+    l = strtol(end, &end, 10);
+    if (errno != 0 || l > UINT8_MAX || l < 0) {
+        return -4;
+    }
+    color->blue = (uint8_t)l;
+    if (*end != ',') {
+        return -5;
+    }
+    end++;
+
+    /* GREEN */
+    l = strtol(end, &end, 10);
+    if (errno != 0 || l > UINT8_MAX || l < 0) {
+        return -6;
+    }
+    color->green = (uint8_t)l;
+    if (*end != '\0') {
+        return -7;
+    }
+
+    return 0;
+}

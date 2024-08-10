@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <inttypes.h>
 #include "config.h"
 
 int main(void) {
@@ -72,6 +73,16 @@ int main(void) {
     double pi;
     if (config_get_double(table, "pi", &pi) == 0) {
         printf("Pi: %.15f\n", pi);
+    }
+
+    // Retrieve and print color (RGB)
+    RGB_t color = {
+        .red = 0,
+        .blue = 0,
+        .green = 0
+    };
+    if (config_get_rgb(table, "color", &color) == 0) {
+        printf("Color: %" PRIu8 ", %" PRIu8 ", %" PRIu8 "\n", color.red, color.green, color.blue);
     }
 
     // Cleanup and free resources
