@@ -13,12 +13,14 @@ typedef size_t (*hashfunction) (const uint8_t *, size_t);
 
 typedef struct ConfigTableEntry {
     char *key;
+    char *section;
     char *value;
     struct ConfigTableEntry *next;
 } ConfigTableEntry;
 
 typedef struct {
     uint32_t size;
+    uint32_t len;
     hashfunction hashfunction;
     ConfigTableEntry **elements;
 } ConfigTable;
@@ -28,10 +30,10 @@ ConfigTable *config_table_init(uint32_t size, hashfunction hashfunction);
 void config_table_kill(ConfigTable *ctx);
 void config_table_print(ConfigTable *ctx, FILE *stream);
 
-int config_table_insert(ConfigTable *ctx, const char *key, const char *value);
+int config_table_insert(ConfigTable *ctx, const char *key, const char *section, const char *value);
 
-char *config_table_lookup(ConfigTable *ctx, const char *key);
-char *config_table_delete(ConfigTable *ctx, const char *key);
+char *config_table_lookup(ConfigTable *ctx, const char *key, const char *section);
+char *config_table_delete(ConfigTable *ctx, const char *key, const char *section);
 
 #ifdef __cplusplus
 }

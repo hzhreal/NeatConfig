@@ -6,11 +6,10 @@
 #include "hashtable.h"
 
 ConfigTable *config_table_init(uint32_t size, hashfunction hashfunction) {
-    ConfigTable *ctx;
-
-    ctx = (ConfigTable *)malloc(sizeof(ConfigTable));
+    ConfigTable *ctx = (ConfigTable *)malloc(sizeof(ConfigTable));
     if (ctx) {
         ctx->size = size;
+        ctx->len = 0;
         ctx->hashfunction = hashfunction;
         ctx->elements = (ConfigTableEntry **)calloc(size, sizeof(ConfigTableEntry *));
         if (ctx->elements) {
@@ -32,6 +31,9 @@ void config_table_kill(ConfigTable *ctx) {
             tmp = ctx->elements[i];
             ctx->elements[i] = ctx->elements[i]->next;
 
+            if (tmp->section) {
+                free(tmp->section);
+            }
             free(tmp->key);
             free(tmp->value);
             free(tmp);
@@ -46,6 +48,11 @@ void config_table_kill(ConfigTable *ctx) {
 void config_table_print(ConfigTable *ctx, FILE *stream) {
     if (!ctx || !stream) return;
 
+    if (ctx->len == 0) {
+        printf("TABLE EMPTY!\n");
+        return;
+    }
+
     ConfigTableEntry *tmp;
     uint32_t i;
 
@@ -54,81 +61,120 @@ void config_table_print(ConfigTable *ctx, FILE *stream) {
             fprintf(stream, "\t%" PRIu32 "\t\n", i);
             tmp = ctx->elements[i];
             while (tmp) {
-                fprintf(stream, "%s:%s - ", tmp->key, tmp->value);
+                fprintf(stream, "[%s]%s:%s - ", (tmp->section) ? (tmp->section) : (""), tmp->key, tmp->value);
                 tmp = tmp->next;
             }
             fprintf(stream, "\n");
         }
     }
+    fprintf(stream, "%" PRIu32 " ELEMENTS\n", ctx->len);
+
     return;
 }
 
-int config_table_insert(ConfigTable *ctx, const char *key, const char *value) {
+int config_table_insert(ConfigTable *ctx, const char *key, const char *section, const char *value) {
     if (!ctx) return -1;
 
-    if (config_table_lookup(ctx, key)) {
+    if (config_table_lookup(ctx, key, section)) {
         return -2;
     }
 
     size_t idx;
     ConfigTableEntry *entry;
 
-    idx = ctx->hashfunction((uint8_t *)key, strlen(key)) % ctx->size;
+    if (section) {
+        idx = (ctx->hashfunction((const uint8_t *)key, strlen(key)) ^ ctx->hashfunction((const uint8_t *)section, strlen(section))) % ctx->size;
+    }
+    else {
+        idx = ctx->hashfunction((const uint8_t *)key, strlen(key)) % ctx->size;
+    }
     entry = (ConfigTableEntry *)malloc(sizeof(ConfigTableEntry));
     if (!entry) {
         return -3;
     }
 
-    entry->key = strdup(key);
-    if (!entry->key) {
-        free(entry);
-        return -4;
+    if (section) {
+        entry->section = strdup(section);
+        if (!entry->section) {
+            free(entry);
+            return -4;
+        }
+    }
+    else {
+        entry->section = NULL;
     }
 
-    entry->value = strdup(value);
-    if (!entry->value) {
-        free(entry->key);
+    entry->key = strdup(key);
+    if (!entry->key) {
+        if (section) {
+            free(entry->section);
+        }
         free(entry);
         return -5;
     }
 
+    entry->value = strdup(value);
+    if (!entry->value) {
+        if (section) {
+            free(entry->section);
+        }
+        free(entry->key);
+        free(entry);
+        return -6;
+    }
+
     entry->next = ctx->elements[idx];
     ctx->elements[idx] = entry;
+    
+    ctx->len++;
 
     return 0;
 }
 
-char *config_table_lookup(ConfigTable *ctx, const char *key) {
+char *config_table_lookup(ConfigTable *ctx, const char *key, const char *section) {
     if (!ctx) return NULL;
 
     size_t idx;
     ConfigTableEntry *tmp;
 
-    idx = ctx->hashfunction((uint8_t *)key, strlen(key)) % ctx->size;
+    if (section) {
+        idx = (ctx->hashfunction((const uint8_t *)key, strlen(key)) ^ ctx->hashfunction((const uint8_t *)section, strlen(section))) % ctx->size;
+    }
+    else {
+        idx = ctx->hashfunction((const uint8_t *)key, strlen(key)) % ctx->size;
+    }
     tmp = ctx->elements[idx];
 
-    while (tmp && strcmp(tmp->key, key) != 0) {
+    while (tmp) {
+        if (strcmp(tmp->key, key) == 0 && (!section || (section && strcmp(tmp->section, section) == 0))) {
+            return tmp->value;
+        }
         tmp = tmp->next;
-    }
-    if (tmp) {
-        return tmp->value;
     }
 
     return NULL;
 }
 
 /* Remember to free the value that is captured if it is not NULL. */
-char *config_table_delete(ConfigTable *ctx, const char *key) {
+char *config_table_delete(ConfigTable *ctx, const char *key, const char *section) {
     if (!ctx) return NULL;
 
     size_t idx;
     ConfigTableEntry *tmp, *prev = NULL;
     char *result;
 
-    idx = ctx->hashfunction((uint8_t *)key, strlen(key)) % ctx->size;
+    if (section) {
+        idx = (ctx->hashfunction((const uint8_t *)key, strlen(key)) ^ ctx->hashfunction((const uint8_t *)section, strlen(section))) % ctx->size;
+    }
+    else {
+        idx = ctx->hashfunction((const uint8_t *)key, strlen(key)) % ctx->size;
+    }
     tmp = ctx->elements[idx];
 
-    while (tmp && strcmp(tmp->key, key) != 0) {
+    while (tmp) {
+        if (strcmp(tmp->key, key) == 0 && (!section || (section && strcmp(tmp->section, section) == 0))) {
+            break;
+        }
         prev = tmp;
         tmp = tmp->next;
     }
@@ -143,9 +189,13 @@ char *config_table_delete(ConfigTable *ctx, const char *key) {
     }
 
     result = tmp->value;
-
+    if (tmp->section) {
+        free(tmp->section);
+    }
     free(tmp->key);
     free(tmp);
+
+    ctx->size--;
 
     return result;
 }
