@@ -49,7 +49,7 @@ void config_table_print(ConfigTable *ctx, FILE *stream) {
     if (!ctx || !stream) return;
 
     if (ctx->len == 0) {
-        printf("TABLE EMPTY!\n");
+        fprintf(stream, "TABLE EMPTY!\n");
         return;
     }
 
