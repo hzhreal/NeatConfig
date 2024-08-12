@@ -351,23 +351,23 @@ int config_get_rgb(ConfigTable *table, const char *key, const char *section, RGB
     }
     end++;
 
-    /* BLUE */
+    /* GREEN */
     l = strtol(end, &end, 10);
     if (errno != 0 || l > UINT8_MAX || l < 0) {
         return -4;
     }
-    color->blue = (uint8_t)l;
+    color->green = (uint8_t)l;
     if (*end != ',') {
         return -5;
     }
     end++;
 
-    /* GREEN */
+    /* BLUE */
     l = strtol(end, &end, 10);
     if (errno != 0 || l > UINT8_MAX || l < 0) {
         return -6;
     }
-    color->green = (uint8_t)l;
+    color->blue = (uint8_t)l;
     if (*end != '\0') {
         return -7;
     }
