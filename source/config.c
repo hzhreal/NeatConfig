@@ -176,8 +176,8 @@ int config_get_bool(ConfigTable *table, const char *key, const char *section, bo
     }
 
     strcpy(res_lower, result);
-    res_lower[sizeof(res_lower) - 1] = '\0';
-    for (i = 0; i < (int)(sizeof(res_lower) - 1); i++) {
+    res_lower[strlen(result)] = '\0';
+    for (i = 0; i < (int)strlen(res_lower); i++) {
         res_lower[i] = tolower((uint8_t)res_lower[i]);
     }
 
