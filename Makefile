@@ -60,6 +60,12 @@ $(TEST_EXEC): $(TEST_OBJ)
 # Build all
 all: $(TARGET)
 
+# Install library
+install:
+	make
+	sudo cp lib/$(LIB_NAME) /usr/local/lib
+	sudo cp include/*.h /usr/local/include
+
 # Build test executable
 test: $(TEST_EXEC)
 
