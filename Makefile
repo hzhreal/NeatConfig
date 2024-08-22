@@ -22,11 +22,14 @@ TEST_DIR = test
 # Source files
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 
+# Header files
+HDRS = $(wildcard $(INC_DIR)/*.h)
+
 # Object files
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
 
 # Library name
-LIB_NAME = libNeatLogger.a
+LIB_NAME = libNeatConfig.a
 
 # Target
 TARGET = $(LIB_DIR)/$(LIB_NAME)
@@ -53,7 +56,7 @@ $(TARGET): $(OBJS)
 # Rule to build test executable
 $(TEST_EXEC): $(TEST_OBJ)
 	@mkdir -p $(@D)
-	$(CC) $(CFLAGS) -o $@ $(TEST_OBJ) -L$(LIB_DIR) -lNeatLogger
+	$(CC) $(CFLAGS) -o $@ $(TEST_OBJ) -L$(LIB_DIR) -lNeatConfig
 
 .PHONY: all clean test
 
@@ -64,7 +67,9 @@ all: $(TARGET)
 install:
 	make
 	sudo cp lib/$(LIB_NAME) /usr/local/lib
-	sudo cp include/*.h /usr/local/include
+	for header in $(HDRS); do \
+		sudo cp $$header /usr/local/include/; \
+	done
 
 # Build test executable
 test: $(TEST_EXEC)
@@ -72,3 +77,21 @@ test: $(TEST_EXEC)
 # Clean objects and library
 clean:
 	rm -rf $(OBJ_DIR) $(LIB_DIR) $(TEST_OBJ) $(TEST_EXEC)
+
+	if [ -f /usr/local/lib/$(LIB_NAME) ]; then \
+		sudo rm /usr/local/lib/$(LIB_NAME); \
+	fi
+
+	for header in $(HDRS); do \
+		header_name=$$(basename $$header); \
+		if [ -f /usr/local/include/$$header_name ]; then \
+			sudo rm /usr/local/include/$$header_name; \
+		fi \
+	done
+
+	for header in $(HDRS); do \
+		header_name=$$(basename $$header); \
+		if [ -f /usr/local/include/$$header_name ]; then \
+			sudo rm /usr/local/include/$$header_name; \
+		fi \
+	done
