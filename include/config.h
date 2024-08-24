@@ -30,6 +30,13 @@ typedef struct {
     uint8_t green;
 } RGB_t;
 
+typedef struct {
+    uint8_t red;
+    uint8_t blue;
+    uint8_t green;
+    uint8_t alpha;
+} RGBA_t;
+
 ConfigTable *config_parse_file(const char *filepath);
 void config_cleanup(ConfigTable *table);
 
@@ -41,6 +48,7 @@ int config_get_long_long(ConfigTable *table, const char *key, const char *sectio
 int config_get_float(ConfigTable *table, const char *key, const char *section, float *val);
 int config_get_double(ConfigTable *table, const char *key, const char *section, double *val);
 int config_get_rgb(ConfigTable *table, const char *key, const char *section, RGB_t *color);
+int config_get_rgba(ConfigTable *table, const char *key, const char *section, RGBA_t *color);
 
 #ifdef __cplusplus
 }

@@ -97,8 +97,20 @@ int main(void) {
         .blue = 0,
         .green = 0
     };
-    if (config_get_rgb(table, "value", "color", &color) == 0) {
+    if (config_get_rgb(table, "text", "color", &color) == 0) {
         printf("Color: %" PRIu8 ", %" PRIu8 ", %" PRIu8 "\n", color.red, color.green, color.blue);
+        shown++;
+    }
+
+    // Retrieve and print color (RGBA)
+    RGBA_t color_a = {
+        .red = 0,
+        .blue = 0,
+        .green = 0,
+        .alpha = 0
+    };
+    if (config_get_rgba(table, "background", "color", &color_a) == 0) {
+        printf("Color_a: %" PRIu8 ", %" PRIu8 ", %" PRIu8 ", %" PRIu8 "\n", color_a.red, color_a.green, color_a.blue, color_a.alpha);
         shown++;
     }
 

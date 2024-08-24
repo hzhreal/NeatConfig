@@ -374,3 +374,60 @@ int config_get_rgb(ConfigTable *table, const char *key, const char *section, RGB
 
     return 0;
 }
+
+int config_get_rgba(ConfigTable *table, const char *key, const char *section, RGBA_t *color) {
+    char *result, *end = NULL;
+    long l;
+    
+    result = config_table_lookup(table, key, section);
+    if (!result) {
+        return -1;
+    }
+
+    errno = 0;
+
+    /* RED */
+    l = strtol(result, &end, 10);
+    if (errno != 0 || l > UINT8_MAX || l < 0) {
+        return -2;
+    }
+    color->red = (uint8_t)l;
+    if (*end != ',') {
+        return -3;
+    }
+    end++;
+
+    /* GREEN */
+    l = strtol(end, &end, 10);
+    if (errno != 0 || l > UINT8_MAX || l < 0) {
+        return -4;
+    }
+    color->green = (uint8_t)l;
+    if (*end != ',') {
+        return -5;
+    }
+    end++;
+
+    /* BLUE */
+    l = strtol(end, &end, 10);
+    if (errno != 0 || l > UINT8_MAX || l < 0) {
+        return -6;
+    }
+    color->blue = (uint8_t)l;
+    if (*end != ',') {
+        return -7;
+    }
+    end++;
+
+    /* ALPHA */
+    l = strtol(end, &end, 10);
+    if (errno != 0 || l > UINT8_MAX || l < 0) {
+        return -8;
+    }
+    color->alpha = (uint8_t)l;
+    if (*end != '\0') {
+        return -9;
+    }
+
+    return 0;
+}
